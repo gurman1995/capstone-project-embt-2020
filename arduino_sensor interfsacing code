@@ -1,5 +1,3 @@
-
-
 #include "MPU6050.h" //Library for MPU6050 module
 #include "Wire.h" //I2C Library for Arduino
 
@@ -83,7 +81,7 @@ void loop()
     {
       data += String(ax)+","+String(ay)+","+String(az)+"," + String(gx)+","+String(gy)+","+String(gz)+"\n"; //Append data in string
     }
-    else // If some problem in read values
+    else // If some problem is in read values
     {
       Serial.println("Corrupted Data, Ignoring");
       
