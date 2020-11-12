@@ -18,7 +18,7 @@
     if ((file = open("/dev/ttyUSB0", O_RDWR))<0) // Try opening file in Read Write mode 
     {
 		
-        printf("UART: Failed to open the file.\n"); //A message Print
+        printf("USB: Failed to open the file.\n"); //A message Print
         return 0;
     }
    
