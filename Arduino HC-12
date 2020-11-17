@@ -1,0 +1,110 @@
+#include "MPU6050.h" //Library for MPU6050 module
+#include "Wire.h" //I2C Library for Arduino
+#include <SoftwareSerial.h> //used for serial por communication
+
+SoftwareSerial mySerial(11, 10); // RX, TX //defining rx and tx pins
+
+#define READY_BTN 12 //Button for collecting Data
+#define LED_PIN 13 // LED Feedback
+
+MPU6050 accelgyro; //Defining instance for Sensor
+
+
+int16_t ax, ay, az; //Variables to store Accelero data
+int16_t gx, gy, gz; //Variables to Store Gyro Data
+
+
+String data = "AX,AY,AZ,GX,GY,GZ\n";//String to Store Sensor Data
+int data_collected = 0; //Variable to keep track of data collection
+
+
+bool blinkState = false; // Status of the LED for blinking
+
+void setup() {
+    Serial.begin(9600); //Start Serial Communication
+    mySerial.begin(9600);
+    Wire.begin(); //Start I2c Communication
+    
+
+    // initialize devic
+    Serial.println("Initializing Sensor devices...");
+    accelgyro.initialize();
+
+    // verify connection
+    Serial.println("Checking for Connection with Sensor");
+    if(accelgyro.testConnection())
+      {
+        Serial.println("MPU6050 connection successful");
+      }
+    else 
+      {
+        Serial.println("Unable to Connect with MPU6050");
+      }
+
+
+
+    // configure Arduino LED pin for output
+    pinMode(LED_PIN, OUTPUT);
+    
+    // configure Button pin for input
+    pinMode(READY_BTN, INPUT_PULLUP);
+
+    delay(2000); //Small Delay
+    
+}
+
+void loop() 
+{
+
+  if(digitalRead(READY_BTN) == HIGH)// If Button is Not Pressed
+  {
+    if(data_collected == 1) //Check if collected data available
+    {
+      
+          Serial.println("COLLECTED DATA: \n");
+          Serial.println(data);
+          Serial.println("\nEND OF DATA");
+
+          Serial.println("COLLECTED DATA: \n");
+          mySerial.println(data);
+          Serial.println("\nEND OF DATA");
+          
+       
+      data_collected = 0;
+      
+    }
+    data = "AX,AY,AZ,GX,GY,GZ\n"; //Default value of Data String
+  }
+
+
+
+
+  if(digitalRead(READY_BTN) == LOW) //If Button Pressed
+  {
+    accelgyro.getMotion6(&ax, &ay, &az, &gx, &gy, &gz); // Read Data from Sensor
+
+
+    
+    if((String(ax).length() > 0) and (String(ay).length() > 0) and (String(az).length() > 0) and 
+    (String(gx).length() > 0) and (String(gy).length() > 0) and (String(gz).length() > 0)) //If all values are good
+    {
+      data += String(ax)+","+String(ay)+","+String(az)+"," + String(gx)+","+String(gy)+","+String(gz)+"\n"; //Append data in string
+    }
+    else // If some problem is in read values
+    {
+      
+      Serial.println("Corrupted Data, Ignoring");
+      
+    }
+
+    data_collected = 1; //Shows that some data has been collected for sending/printing
+    delay(15);
+
+  }
+
+
+    // blink LED to indicate activity
+    blinkState = !blinkState;
+    digitalWrite(LED_PIN, blinkState);
+    
+}
