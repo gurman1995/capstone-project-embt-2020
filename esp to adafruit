@@ -1,0 +1,84 @@
+#include <ESP8266WiFi.h> // LIbrary is user for WiFi Connection of ESP8266
+#include "AdafruitIO_WiFi.h" // Library for Adafruit cloud
+
+//Service Set Identifier
+#define ssid "VIRGIN663"  //Name of the Wifi we wanna connect to
+#define password "E6DEA144"  //Password for the WiFi Network
+
+
+#define IO_USERNAME "Gurman1995" // Adafruit Username
+#define IO_KEY "aio_cXLm88R2axn5Na5j8tEVNHMYDcJT"
+
+AdafruitIO_WiFi io(IO_USERNAME, IO_KEY, ssid, password); //Initializing Adafruit Library
+
+AdafruitIO_Feed *text = io.feed("text");//Selecting the Block
+
+void setup() { // Executed on once
+  
+  Serial.begin(9600); //Initialising Serial Communication with Baud Rate of 9600
+
+  // We start by connecting to a WiFi network
+
+  Serial.print("Connecting to ");
+  Serial.println(ssid); // Just a Print
+  
+  
+  WiFi.mode(WIFI_STA); // Making ESP in Station/Client Mode
+  WiFi.begin(ssid, password); // Trying to Connect to WiFi
+
+  while (WiFi.status() != WL_CONNECTED) { // Waiting until WiFi is not connected
+    delay(500); // Delay in milliseconds
+    Serial.print(".");
+  }
+
+  // Code will reach here if it gets connected to Wifi
+  
+  Serial.println("");
+  Serial.println("WiFi connected"); //  Print that we got connected to WiFi
+
+
+   // connect to io.adafruit.com
+  io.connect();
+
+   // wait for a connection
+  while(io.status() < AIO_CONNECTED) {
+    Serial.print(".");
+    delay(500);
+  }
+
+//  // we are connected
+//  Serial.println();
+//  Serial.println(io.statusText());
+  
+
+}
+
+void loop() { // Executed in loop for infinite number of time
+  
+    if(Serial.available()) //If any data coming from Serial from Beaglebone
+    {
+      String character;
+      while(Serial.available())
+      {
+        character = Serial.readString(); // Read the Data Byte by Byte
+        delay(1);
+      }
+//
+//      Serial.print("Uploading Charcater to Adafruit: ");
+//      Serial.println(character]);
+
+      if(character.length()<5) 
+      {
+        text->save(character); //Uploading the data to cloud
+      }
+
+      delay(2000); // Waiting for a second
+      
+      Serial.print("Connected to WiFi: "); //Send Print Acknowledgement
+      Serial.print(ssid); // Send name of the WiFi
+      Serial.print(" | Wifi Signal Strength (RSSI dB): "); //Send Print Acknowledgement
+      Serial.println(WiFi.RSSI()); // Send name of the WiFi
+      delay(5000);
+    }
+  delay(100); // Just a small delay in loop 
+}
